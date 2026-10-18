@@ -74,6 +74,7 @@
   <string name="celsius" formatted="false">Celsius</string>
   <string name="celsius_symbol" formatted="false">C</string>
   <string name="volt_symbol" formatted="false">V</string>
+  <string name="watt_symbol" formatted="false">W</string>
 
   <string name="inaccessible_storage" formatted="false">SD Card is inaccessible</string>
   <string name="inaccessible_w_reason" formatted="false">SD Card inaccessible: </string>
