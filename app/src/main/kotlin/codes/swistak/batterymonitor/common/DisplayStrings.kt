@@ -40,6 +40,7 @@ internal object DisplayStrings {
     lateinit var fahrenheitSymbol: String
     lateinit var celsiusSymbol: String
     lateinit var voltSymbol: String
+    lateinit var wattSymbol: String
     lateinit var percentSymbol: String
     lateinit var since: String
     lateinit var defaultStatusDurEst: String
@@ -104,6 +105,7 @@ internal object DisplayStrings {
         fahrenheitSymbol = res.getString(R.string.fahrenheit_symbol)
         celsiusSymbol = res.getString(R.string.celsius_symbol)
         voltSymbol = res.getString(R.string.volt_symbol)
+        wattSymbol = res.getString(R.string.watt_symbol)
         percentSymbol = res.getString(R.string.percent_symbol)
         since = res.getString(R.string.since)
         defaultStatusDurEst = res.getString(R.string.default_status_dur_est)
@@ -214,8 +216,16 @@ internal object DisplayStrings {
         return formatVoltage(voltage, resourceLocale())
     }
 
+    fun formatPower(voltage: Int, current: Double): String {
+        return formatPower(voltage, current,resourceLocale())
+    }
+
     internal fun formatVoltage(voltage: Int, locale: Locale): String {
         return formatDecimal(voltage / 1000.0, 1, 3, locale) + voltSymbol
+    }
+
+    internal fun formatPower(voltage: Int, current: Double, locale: Locale): String {
+        return formatDecimal((voltage * current) / 1_000_000.0, 1, 3, locale) + wattSymbol
     }
 
     fun formatChargeDetailed(microAmpHours: Long): String {

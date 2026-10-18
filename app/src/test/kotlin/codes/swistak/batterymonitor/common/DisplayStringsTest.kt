@@ -25,6 +25,7 @@ class DisplayStringsTest {
         DisplayStrings.fahrenheitSymbol = "F"
         DisplayStrings.celsiusSymbol = "C"
         DisplayStrings.voltSymbol = "V"
+        DisplayStrings.wattSymbol = "W"
     }
 
     @Test

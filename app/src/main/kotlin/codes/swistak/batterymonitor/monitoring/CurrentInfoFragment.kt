@@ -29,6 +29,7 @@ import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -78,9 +79,10 @@ class CurrentInfoFragment : Fragment() {
     private var blv: ImageView? = null
     private var currentIcon: View? = null
     private var tvTemp: TextView? = null
-    private var tvHealth: TextView? = null
+    private var tvPower: TextView? = null
     private var tvVoltage: TextView? = null
     private var tvCurrent: TextView? = null
+    private var tvHealth: TextView? = null
 
     private var tvRemainingCharge: TextView? = null
     private var pluggedIcon: ImageView? = null
@@ -91,6 +93,7 @@ class CurrentInfoFragment : Fragment() {
     private val mHandler = Handler(Looper.getMainLooper())
     private val mARefresher: Runnable = Runnable {
         refreshCurrent()
+        refreshPower()
         mHandler.postDelayed(mARefresher, batteryCurrentRefreshIntervalMillis())
     }
 
@@ -122,9 +125,10 @@ class CurrentInfoFragment : Fragment() {
         }
 
         tvTemp = rootView.findViewById<View?>(R.id.temp) as TextView
-        tvHealth = rootView.findViewById<View?>(R.id.health) as TextView
+        tvPower = rootView.findViewById<View?>(R.id.power) as TextView
         tvVoltage = rootView.findViewById<View?>(R.id.voltage) as TextView
         tvCurrent = rootView.findViewById<View?>(R.id.current) as TextView
+        tvHealth = rootView.findViewById<View?>(R.id.health) as TextView
         tvRemainingCharge = rootView.findViewById<View?>(R.id.remaining_charge) as TextView
         pluggedIcon = rootView.findViewById<View?>(R.id.plugged_icon) as ImageView
 
@@ -198,10 +202,7 @@ class CurrentInfoFragment : Fragment() {
         info.load(pFrag!!.spService)
         handleUpdatedBatteryInfo()
 
-        if (pFrag!!.settings.getBoolean(
-                SettingsContract.KEY_ENABLE_BATTERY_CURRENT, false
-            )
-        ) mHandler.postDelayed(mARefresher, batteryCurrentRefreshIntervalMillis())
+        mHandler.postDelayed(mARefresher, batteryCurrentRefreshIntervalMillis())
     }
 
     override fun onStop() {
@@ -414,6 +415,7 @@ class CurrentInfoFragment : Fragment() {
         else pluggedIcon!!.setImageResource(R.drawable.not_unplugged)
 
         refreshCurrent()
+        refreshPower()
     }
 
     private fun hasAlternativeTimeEstimate(): Boolean {
@@ -503,6 +505,25 @@ class CurrentInfoFragment : Fragment() {
         tvCurrent!!.text = s
     }
 
+    private fun refreshPower() {
+        var current: Double? = null
+        if (pFrag!!.settings.getBoolean(
+                SettingsContract.KEY_PREFER_AVERAGE_BATTERY_CURRENT, false
+            )
+        ) {
+            current = BatteryCurrent.avgCurrent
+        }
+        if (current == null) {
+            current = BatteryCurrent.current
+        }
+
+        tvPower!!.text = info.voltage?.let { v ->
+            current?.let { c ->
+                DisplayStrings.formatPower(v, c)
+            }
+        } ?: ""
+    }
+
     private fun batteryCurrentRefreshIntervalMillis(): Long {
         val seconds = pFrag!!.settings.getString(
             SettingsContract.KEY_BATTERY_CURRENT_REFRESH_INTERVAL, "2"
@@ -510,8 +531,8 @@ class CurrentInfoFragment : Fragment() {
         return seconds * 1000L
     }
 
-    /* mA TextView */
-    private val vsListener: View.OnClickListener = View.OnClickListener { refreshCurrent() }
+    /* mA and W TextView */
+    private val vsListener: View.OnClickListener = View.OnClickListener { refreshCurrent(); refreshPower() }
 
     /* Battery Use */
     private val buButtonListener: View.OnClickListener = View.OnClickListener {
@@ -652,10 +673,17 @@ class CurrentInfoFragment : Fragment() {
         tempText.setLayoutParams(LinearLayout.LayoutParams(0, vitalIconHeight, 0.5f))
         tempText.setTextSize(TypedValue.COMPLEX_UNIT_PX, vitalTextHeight.toFloat())
 
+        val powerIcon = rootView.findViewById<View>(R.id.power_icon)
+        powerIcon.setLayoutParams(LinearLayout.LayoutParams(vitalIconHeight, vitalIconHeight))
+        val powerText = rootView.findViewById<View?>(R.id.power) as TextView
+        powerText.setLayoutParams(LinearLayout.LayoutParams(0, vitalIconHeight, 0.5f))
+        powerText.setTextSize(TypedValue.COMPLEX_UNIT_PX, vitalTextHeight.toFloat())
+
         val healthIcon = rootView.findViewById<View>(R.id.health_icon)
         healthIcon.setLayoutParams(LinearLayout.LayoutParams(vitalIconHeight, vitalIconHeight))
         val healthText = rootView.findViewById<View?>(R.id.health) as TextView
-        healthText.setLayoutParams(LinearLayout.LayoutParams(0, vitalIconHeight, 0.5f))
+        healthText.setLayoutParams(LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, vitalIconHeight))
+        healthText.gravity = Gravity.CENTER
         healthText.setTextSize(TypedValue.COMPLEX_UNIT_PX, vitalTextHeight.toFloat())
 
         val voltageIcon = rootView.findViewById<View>(R.id.voltage_icon)
